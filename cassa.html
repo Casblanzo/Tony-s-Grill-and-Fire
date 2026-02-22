@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Cassa</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <img src="img/tony.png" class="logo" alt="Logo Tony's Grill">
+        <h1 style="color: white;">Area Cassa</h1>
+        <nav>
+            <a href="home.html" style="color: #27ae60; text-decoration: none; font-weight: bold;">← Torna al Menu</a>
+        </nav>
+    </header>
+    <main>
+        <!-- Area Sinistra: Mappa Tavoli -->
+        <section id="checkout-container">
+            <h2>Seleziona un Tavolo</h2>
+
+            <div id="container-mappa">
+                <!-- I tavoli verranno generati qui da JS -->
+            </div>
+
+            <div style="margin-top: 20px;">
+                <label for="tavolo-select">Tavolo selezionato:</label>
+                <select id="tavolo-select">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+                <button onclick="caricaOrdine()" style="width: auto; padding: 10px 20px;">Carica ordine</button>
+            </div>
+        </section>
+
+        <!-- Area Destra: Dettagli Ordine -->
+        <section id="carrello">
+            <h2>Dettagli Ordine</h2>
+            <div id="ordine-details">
+                <p>Seleziona un tavolo per visualizzare i dettagli.</p>
+            </div>
+            <div class="totale" id="totale-cassa">Totale: € 0.00</div>
+            <button id="btn-paga" onclick="pagaOrdine()">Paga</button>
+        </section>
+    </main>
+
+    <script>
+        const numTavoli = 10;
+        const raggio = 160; 
+        const container = document.getElementById('container-mappa');
+        const select = document.getElementById('tavolo-select');
+
+        // Legge i dati dal localStorage condiviso con la home
+        function ottieniDati() {
+            return JSON.parse(localStorage.getItem('ristorante_ordini')) || {
+                1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: []
+            };
+        }
+
+        // Generazione grafica dei tavoli
+        for (let i = 1; i <= numTavoli; i++) {
+            const angolo = (i * 2 * Math.PI) / numTavoli;
+            const x = 200 + raggio * Math.cos(angolo);
+            const y = 200 + raggio * Math.sin(angolo);
+
+            const div = document.createElement('div');
+            div.className = 'tavolo-grafico';
+            div.id = `t-grafico-${i}`;
+            div.textContent = i;
+            div.style.left = `${x}px`;
+            div.style.top = `${y}px`;
+            div.style.position = 'absolute'; // Necessario per il cerchio
+
+            div.onclick = () => selezionaTavolo(i);
+            container.appendChild(div);
+        }
+
+        function selezionaTavolo(numero) {
+            select.value = numero;
+            document.querySelectorAll('.tavolo-grafico').forEach(t => t.classList.remove('selezionato'));
+            document.getElementById(`t-grafico-${numero}`).classList.add('selezionato');
+            caricaOrdine();
+        }
+
+        function caricaOrdine() {
+            const tavolo = select.value;
+            const db = ottieniDati();
+            const det = document.getElementById('ordine-details');
+            const totLabel = document.getElementById('totale-cassa');
+
+            const items = db[tavolo] || [];
+            
+            if (items.length === 0) {
+                det.innerHTML = '<p>Nessun ordine per questo tavolo</p>';
+                totLabel.textContent = 'Totale: € 0.00';
+                return;
+            }
+
+            // Raggruppamento per nome e calcolo totale
+            const raggruppati = {};
+            let totale = 0;
+
+            items.forEach(it => {
+                if (!raggruppati[it.id]) {
+                    raggruppati[it.id] = { nome: it.nome, quantita: 0, prezzo: it.prezzo };
+                }
+                raggruppati[it.id].quantita++;
+                totale += it.prezzo;
+            });
+
+            let html = '<ul id="lista-ordine">';
+            Object.values(raggruppati).forEach(item => {
+                html += `<li>${item.nome} <strong>x${item.quantita}</strong> - €${(item.prezzo * item.quantita).toFixed(2)}</li>`;
+            });
+            html += '</ul>';
+            
+            det.innerHTML = html;
+            totLabel.textContent = `Totale: € ${totale.toFixed(2)}`;
+        }
+
+        function pagaOrdine() {
+            const tavolo = select.value;
+            let db = ottieniDati();
+
+            if (!db[tavolo] || db[tavolo].length === 0) {
+                alert('Tavolo già libero');
+                return;
+            }
+
+            if (confirm(`Confermi il pagamento per il tavolo ${tavolo}?`)) {
+                db[tavolo] = []; // Svuota il tavolo
+                localStorage.setItem('ristorante_ordini', JSON.stringify(db));
+                alert('Pagamento effettuato');
+                caricaOrdine();
+            }
+        }
+    </script>
+</body>
+</html>

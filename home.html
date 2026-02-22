@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Digitale Interattivo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <img src="img/tony.png" class="logo" alt="Logo Tony's Grill">
+        <p>Tavolo:
+            <select id="numero-tavolo">
+                <option value="" disabled selected>-- scegli tavolo --</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+        </p>
+
+        <!-- PULSANTE CASSA NELL'HEADER -->
+        <a href="cassa.html" class="btn-cassa">Vai alla Cassa</a>
+    </header>
+
+    <main>
+        <section id="menu-container">
+            <h2>Scegli i tuoi piatti</h2>
+            <div id="lista-piatti" class="grid-piatti"></div>
+            <br>
+            <h2>Bibite</h2>
+            <div id="lista-bibite" class="grid-piatti"></div>
+        </section>
+
+        <aside id="carrello">
+            <h2>Il Tuo Ordine</h2>
+            <ul id="lista-ordine"></ul>
+            <div class="totale">
+                <strong>Totale: €<span id="prezzo-totale">0.00</span></strong>
+            </div>
+            <button id="btn-paga" onclick="eseguiOrdine()">Ordina</button>
+            <button id="btn-azzera" class="btn-azzera" onclick="azzeraTavolo()">Azzera Tavolo</button>
+
+            <!-- ALTERNATIVA: PULSANTE CASSA IN FONDO AL CARRELLO -->
+            <!-- <a href="cassa.html" class="btn-cassa" style="background-color: #34495e;">Vai alla Cassa</a> -->
+        </aside>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

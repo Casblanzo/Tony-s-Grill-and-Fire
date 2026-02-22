@@ -1,0 +1,144 @@
+openapi: 3.0.0
+
+info:
+  title: API Tony's Grill - Menù e Cassa
+  description: API per la gestione del menù digitale, invio ordini dai tavoli e gestione pagamenti in cassa.
+  version: 1.1.0
+
+servers:
+  - url: http://localhost:8080/v1
+    description: Server di sviluppo locale
+
+paths:
+  /menu:
+    get:
+      summary: Carica il menù completo
+      description: Restituisce la lista dei piatti e delle bibite con prezzi e disponibilità.
+      responses:
+        '200':
+          description: Menù caricato con successo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MenuItem'
+
+  /ordine:
+    post:
+      summary: Invia un nuovo ordine
+      description: Invia i piatti selezionati dal carrello al server per un tavolo specifico.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      responses:
+        '201':
+          description: Ordine ricevuto correttamente
+        '400':
+          description: Dati mancanti o tavolo non selezionato
+
+  /tavolo/{numero}:
+    get:
+      summary: Recupera lo stato attuale di un tavolo
+      description: Usato sia dalla Home (per vedere cosa è "In Cucina") che dalla Cassa (per il totale).
+      parameters:
+        - in: path
+          name: numero
+          required: true
+          schema:
+            type: integer
+          description: Numero del tavolo (1-10)
+      responses:
+        '200':
+          description: Elenco piatti ordinati e stato pagamento
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MenuItem'
+                  paid:
+                    type: boolean
+        '404':
+          description: Tavolo non trovato o senza ordini attivi
+
+  /paga:
+    post:
+      summary: Registra il pagamento
+      description: Chiude l'ordine del tavolo e lo contrassegna come pagato.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                table:
+                  type: integer
+                  example: 3
+      responses:
+        '200':
+          description: Pagamento effettuato con successo
+
+  /azzera:
+    post:
+      summary: Reset totale del tavolo
+      description: Cancella definitivamente ogni traccia di ordini per il tavolo indicato.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                table:
+                  type: integer
+                  example: 3
+      responses:
+        '200':
+          description: Tavolo resettato
+
+components:
+  schemas:
+    MenuItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nome:
+          type: string
+          example: "Costolette"
+        prezzo:
+          type: number
+          format: float
+          example: 15.00
+        quantità:
+          type: integer
+          description: Stock totale disponibile
+          example: 10
+        categoria:
+          type: string
+          enum: [piatto, bibita]
+          example: "piatto"
+
+    OrderRequest:
+      type: object
+      required:
+        - table
+        - items
+      properties:
+        table:
+          type: integer
+          example: 5
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuItem'
+          description: Lista dei singoli oggetti inviati dal carrello
